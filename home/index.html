@@ -5,8 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1">
   <meta name="theme-color" content="#0c151c">
   <title>PixelOS Home</title>
-  <link rel="stylesheet" href="styles.css">
-  <script src="app.js" defer></script>
+  <link rel="stylesheet" href="styles.css?v=3">
+  <script src="app.js?v=3" defer></script>
 </head>
 <body>
   <object id="application-manager" type="application/oipfApplicationManager" aria-hidden="true" tabindex="-1"></object>
@@ -43,7 +43,7 @@
         <button class="app-tile sources" type="button" data-action="sources" data-focusable disabled><span class="app-symbol source-symbol" aria-hidden="true"><span></span></span><span class="tile-title">Fernsehen &amp; HDMI</span><span class="tile-description">Sender, Konsole &amp; mehr</span><span class="app-arrow" aria-hidden="true">&#8599;</span></button>
       </div>
     </section>
-    <footer><span>Dein TV. Dein Zuhause.</span><span class="footer-brand">PixelOS Home</span></footer>
+    <footer><span>Dein TV. Dein Zuhause.</span><span class="footer-brand" id="footer-brand">PixelOS Home</span></footer>
     <div class="status-panel" id="status-panel" role="status" aria-live="polite" aria-atomic="true" hidden><p id="status"></p></div>
     <aside class="settings-panel" id="settings-panel" aria-labelledby="settings-title" hidden>
       <div class="settings-heading"><h2 id="settings-title">Dein PixelOS</h2><button class="close-button" id="close-settings" type="button" data-focusable aria-label="Einstellungen schließen">&#215;</button></div>

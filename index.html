@@ -116,13 +116,13 @@
     document.body.appendChild(form);
     log('→ Formular an http://' + host + ':12345/apps/HbbTV');
     form.submit();
-    // Der DIAL-Server antwortet erst nach dem OK am TV. Laedt der Browser diese Antwort, holt er sich
-    // den Fokus samt Mauszeiger zurueck (Test 30.10.2026). Darum den Seitenwechsel abbrechen, sobald die
-    // Anfrage raus ist; der TV startet trotzdem (P2-05: Start auch nach getrennter Verbindung).
+    // Der DIAL-Server antwortet erst nach dem OK am TV. Laedt der Browser diese leere Antwort, legt er
+    // sie schwarz ueber PixelOS und behaelt Mauszeiger und Tasten (Tests 30.10.2026; window.stop()
+    // half nicht). Ein neuer Seitenwechsel verdraengt den haengenden; der TV startet trotzdem
+    // (P2-05: Start auch nach getrennter Verbindung).
     setTimeout(function () {
-      try { window.stop(); } catch (e) { /* dann bleibt es beim Seitenwechsel */ }
-      log('Anfrage gesendet, Seitenwechsel abgebrochen.');
-    }, 1500);
+      location.replace(location.pathname + '?sent=1' + (/[?&]form=1/.test(location.search) ? '&form=1' : ''));
+    }, 1200);
   }
 
   function launch(host) {
@@ -150,7 +150,10 @@
   // eine Startanfrage an den TV ausgeloest.
   var onTv = /SmartTvA|Vestel|OMI\//.test(navigator.userAgent);
   setupMode(isSetupMode());
-  if (!onTv) {
+  log('PixelOS Start v3');
+  if (/[?&]sent=1/.test(location.search)) {
+    msg('Startanfrage gesendet. Bitte am Fernseher mit OK bestätigen.');
+  } else if (!onTv) {
     msg('Diese Seite startet PixelOS nur im TV-Browser automatisch. Hier startet „Nochmal starten“ ' +
       'PixelOS auf dem Fernseher ' + TV_IP + '.');
   } else if (isSetupMode()) {

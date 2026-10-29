@@ -292,6 +292,10 @@
   if (startupEnabled) { playStartup(); }
   initializeHbbTV();
   renderMode();
+  // Sichtbar ohne Bedienung, damit sich am TV ablesen laesst, wie PixelOS laeuft (Tests 30.10.2026).
+  document.getElementById('footer-brand').textContent = 'PixelOS v3 · ' +
+    (owner ? 'HbbTV-App, Tasten ' + (keyset.applied ? 'an' : 'aus') : 'Browserseite') +
+    (typeof window.__omi_window_type === 'string' ? ' · ' + window.__omi_window_type : '');
   updateClock();
   window.setInterval(updateClock, 30000);
   focusInitial();
