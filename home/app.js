@@ -121,7 +121,9 @@
     } else {
       badge.textContent = 'TV-Steuerung';
       badge.className = 'mode-badge control';
-      note.textContent = 'Läuft ohne PC. Apps und TV-Funktionen starten erst nach deiner Auswahl.';
+      // Laeuft PixelOS im Browser statt als HbbTV-App, steuern Pfeile einen Mauszeiger (Befund #60).
+      note.textContent = 'Läuft ohne PC. Apps und TV-Funktionen starten erst nach deiner Auswahl. ' +
+        (owner ? 'Modus: HbbTV-App, Tasten ' + (keyset.applied ? 'angemeldet' : 'nicht angemeldet') + '.' : 'Modus: Browserseite.');
     }
   }
 
@@ -287,9 +289,9 @@
   try { startupEnabled = window.localStorage.getItem('pixelhome.startup') !== 'off'; } catch (error) {}
   applyTheme();
   renderStartupPreference();
-  renderMode();
   if (startupEnabled) { playStartup(); }
   initializeHbbTV();
+  renderMode();
   updateClock();
   window.setInterval(updateClock, 30000);
   focusInitial();

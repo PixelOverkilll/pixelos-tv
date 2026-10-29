@@ -116,6 +116,13 @@
     document.body.appendChild(form);
     log('→ Formular an http://' + host + ':12345/apps/HbbTV');
     form.submit();
+    // Der DIAL-Server antwortet erst nach dem OK am TV. Laedt der Browser diese Antwort, holt er sich
+    // den Fokus samt Mauszeiger zurueck (Test 30.10.2026). Darum den Seitenwechsel abbrechen, sobald die
+    // Anfrage raus ist; der TV startet trotzdem (P2-05: Start auch nach getrennter Verbindung).
+    setTimeout(function () {
+      try { window.stop(); } catch (e) { /* dann bleibt es beim Seitenwechsel */ }
+      log('Anfrage gesendet, Seitenwechsel abgebrochen.');
+    }, 1500);
   }
 
   function launch(host) {
