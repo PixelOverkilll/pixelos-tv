@@ -1,0 +1,62 @@
+<!doctype html>
+<html lang="de">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#0c151c">
+  <title>PixelOS Home</title>
+  <link rel="stylesheet" href="styles.css">
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <object id="application-manager" type="application/oipfApplicationManager" aria-hidden="true" tabindex="-1"></object>
+  <div class="startup" id="startup" aria-hidden="true" hidden>
+    <div class="startup-content">
+      <span class="brand-mark startup-mark"><i></i><i></i><i></i><i></i></span>
+      <p class="startup-wordmark">Pixel<span>OS</span></p>
+      <p class="startup-caption">Dein Fernseher. Aufgeräumt.</p>
+    </div>
+  </div>
+  <main class="launcher" id="launcher">
+    <header class="header">
+      <div class="identity"><span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i><i></i></span><p class="brand">Pixel<span>OS</span></p></div>
+      <div class="header-tools">
+        <span class="mode-badge" id="mode-badge">Verbinden</span>
+        <div class="clock-panel"><time class="clock" id="clock" aria-label="Aktuelle Uhrzeit">--:--</time><p class="date" id="date"></p></div>
+        <button class="settings-button" id="settings-button" type="button" data-focusable aria-label="Einstellungen öffnen" aria-expanded="false" aria-controls="settings-panel"><svg viewBox="0 0 24 24" aria-hidden="true" focusable="false"><path d="M12 8a4 4 0 1 0 0 8 4 4 0 0 0 0-8ZM9 3l-1 3-3 1-2 3 2 2-1 3 2 3 3-1 2 3h3l1-3 3-1 2-3-2-2 1-3-2-3-3 1-2-3Z"/></svg></button>
+      </div>
+    </header>
+    <section class="hero" aria-labelledby="welcome-title">
+      <div class="hero-copy"><p class="eyebrow" id="greeting">Willkommen zu Hause</p><h1 id="welcome-title">Dein Zuhause.<br><span>Dein Programm.</span></h1><p class="hero-note">Deine Apps. Ohne Umwege.</p></div>
+      <svg class="landscape" viewBox="0 0 720 400" aria-hidden="true" focusable="false">
+        <defs><radialGradient id="sky"><stop offset="0" stop-color="#397b7d" stop-opacity=".65"/><stop offset="1" stop-color="#0c151c" stop-opacity="0"/></radialGradient><linearGradient id="mountain" x2="0" y2="1"><stop stop-color="#46686d"/><stop offset="1" stop-color="#182d35"/></linearGradient></defs>
+        <ellipse cx="420" cy="180" rx="290" ry="205" fill="url(#sky)"/><circle cx="465" cy="118" r="54" fill="#bad8cf"/>
+        <path d="M115 300 330 109 471 242 563 169 720 293V400H115Z" fill="url(#mountain)"/><path d="m330 109 67 64-55-14-29 20-27-14Z" fill="#a5bcb6" opacity=".7"/>
+        <path d="M40 350 204 244 342 326 491 244 720 352v48H40Z" fill="#142a32"/><path d="M0 373 188 319 340 367 554 315 720 368v32H0Z" fill="#0c1b23"/><path d="M270 386h290m-254-12h193m-156-12h105" stroke="#65918c" opacity=".3"/>
+      </svg>
+    </section>
+    <section class="app-section" aria-labelledby="apps-title">
+      <div class="section-heading"><h2 id="apps-title">Deine Apps</h2><span>Einfach loslegen.</span></div>
+      <div class="apps">
+        <button class="app-tile netflix" type="button" data-action="netflix" data-focusable disabled><span class="app-symbol netflix-symbol" aria-hidden="true">N</span><span class="tile-title">Netflix</span><span class="tile-description">Filme &amp; Serien</span><span class="app-arrow" aria-hidden="true">&#8599;</span></button>
+        <button class="app-tile prime" type="button" data-action="prime" data-focusable disabled><span class="app-symbol prime-symbol" aria-hidden="true">prime<span class="prime-smile"></span></span><span class="tile-title">Prime Video</span><span class="tile-description">Dein nächster Filmabend</span><span class="app-arrow" aria-hidden="true">&#8599;</span></button>
+        <button class="app-tile sources" type="button" data-action="sources" data-focusable disabled><span class="app-symbol source-symbol" aria-hidden="true"><span></span></span><span class="tile-title">Fernsehen &amp; HDMI</span><span class="tile-description">Sender, Konsole &amp; mehr</span><span class="app-arrow" aria-hidden="true">&#8599;</span></button>
+      </div>
+    </section>
+    <footer><span>Dein TV. Dein Zuhause.</span><span class="footer-brand">PixelOS Home</span></footer>
+    <div class="status-panel" id="status-panel" role="status" aria-live="polite" aria-atomic="true" hidden><p id="status"></p></div>
+    <aside class="settings-panel" id="settings-panel" aria-labelledby="settings-title" hidden>
+      <div class="settings-heading"><h2 id="settings-title">Dein PixelOS</h2><button class="close-button" id="close-settings" type="button" data-focusable aria-label="Einstellungen schließen">&#215;</button></div>
+      <p class="settings-label">So, wie es dir gefällt.</p>
+      <button class="preference-button" id="theme-button" type="button" data-focusable>Design: Ozean</button>
+      <button class="preference-button" id="startup-button" type="button" data-focusable aria-pressed="true">Startanimation: Ein</button>
+      <button class="preference-button" id="replay-startup" type="button" data-focusable>Animation ansehen</button>
+      <p class="settings-label">Fernseher</p>
+      <div class="volume-controls"><button class="small-button" type="button" data-action="volume_down" data-focusable aria-label="Leiser" disabled>&minus;</button><span>Lautstärke</span><button class="small-button" type="button" data-action="volume_up" data-focusable aria-label="Lauter" disabled>+</button></div>
+      <button class="preference-button" id="return-to-tv" type="button" data-action="exit" data-focusable disabled>Zurück zum TV</button>
+      <p class="settings-note" id="mode-note">Verbindung wird hergestellt.</p>
+    </aside>
+    <noscript><p class="noscript">Bitte JavaScript im TV-Browser aktivieren.</p></noscript>
+  </main>
+</body>
+</html>

@@ -1,0 +1,160 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>PixelOS Start</title>
+<style>
+  html, body { margin: 0; height: 100%; background: #0b0d12; color: #e8ebf2;
+    font-family: "Segoe UI", Roboto, Helvetica, Arial, sans-serif; }
+  body { display: flex; align-items: center; justify-content: center; text-align: center; }
+  .logo { font-size: 5vw; font-weight: 300; letter-spacing: .02em; }
+  .logo b { color: #7aa2ff; font-weight: 600; }
+  #msg { font-size: 1.6vw; color: #c9d1e4; margin-top: 2vh; max-width: 70vw; }
+  #log { font-family: Consolas, "DejaVu Sans Mono", monospace; font-size: 1vw; color: #8a93a6;
+    margin-top: 2vh; white-space: pre; }
+  .btns { margin-top: 4vh; }
+  .btn { margin: 0 .6vw; padding: 1.2vh 1.4vw; border-radius: .8vw; border: .2vw solid #2b3550;
+    background: #1e2433; color: #e8ebf2; font: inherit; font-size: 1.1vw; }
+  .btn.on { border-color: #ffc65c; }
+</style>
+</head>
+<body>
+<div>
+  <div class="logo"><b>Pixel</b>OS</div>
+  <div id="msg">Starte …</div>
+  <div id="log"></div>
+  <div class="btns">
+    <button class="btn" id="retry">Nochmal starten</button>
+    <button class="btn" id="setup">Einrichtungsmodus: aus</button>
+  </div>
+</div>
+
+<script>
+/* Startseite ohne PC (Weg wie T6/launch.html): startet PixelOS per DIAL als HbbTV-App auf dem eigenen TV.
+   Bewusst ES5. Auf HTTP genuegt ein XHR (Simple Request, belegt in T6). Auf HTTPS blockiert der Browser
+   den XHR an http://<TV-IP> als Mixed Content; dann geht der Start als Formular-Navigation raus. */
+(function () {
+  'use strict';
+
+  var TV_KEY = 'pixelos.tv', SETUP_KEY = 'pixelos.launch.setup';
+  var TV_IP = (/[?&]tv=([0-9.]+)/.exec(location.search) || [])[1];
+  try {
+    if (TV_IP) { localStorage.setItem(TV_KEY, TV_IP); } else { TV_IP = localStorage.getItem(TV_KEY); }
+  } catch (e) { /* ohne localStorage gilt der Standard */ }
+  TV_IP = TV_IP || '192.168.0.176';
+
+  var link = document.createElement('a');
+  link.href = 'home/index.html';
+  var APP_URL = link.href;  // absolute URL relativ zu dieser Seite, auch unter einem Unterpfad
+
+  function $(id) { return document.getElementById(id); }
+  function esc(s) {
+    return String(s).replace(/[&<>"]/g, function (c) {
+      return { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c];
+    });
+  }
+  function msg(t) { $('msg').textContent = t; }
+  function log(t) { $('log').textContent += t + '\n'; }
+
+  // XML-AIT (ETSI TS 102 809) fuer eine broadcast-unabhaengige HbbTV-App, wie in launch.html.
+  function ait(url) {
+    var cut = url.lastIndexOf('/');
+    var base = url.slice(0, cut + 1), file = url.slice(cut + 1);
+    var a = document.createElement('a');
+    a.href = url;
+    return '<?xml version="1.0" encoding="UTF-8"?>' +
+      '<mhp:ServiceDiscovery xmlns:mhp="urn:dvb:mhp:2009" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">' +
+      '<mhp:ApplicationDiscovery DomainName="' + esc(a.hostname) + '">' +
+      '<mhp:ApplicationList><mhp:Application>' +
+      '<mhp:appName Language="deu">PixelOS</mhp:appName>' +
+      '<mhp:applicationIdentifier><mhp:orgId>1</mhp:orgId><mhp:appId>1</mhp:appId></mhp:applicationIdentifier>' +
+      '<mhp:applicationDescriptor>' +
+      '<mhp:type><mhp:OtherApp>application/vnd.hbbtv.xhtml+xml</mhp:OtherApp></mhp:type>' +
+      '<mhp:controlCode>AUTOSTART</mhp:controlCode><mhp:visibility>VISIBLE_ALL</mhp:visibility>' +
+      '<mhp:serviceBound>false</mhp:serviceBound><mhp:priority>1</mhp:priority><mhp:version>01</mhp:version>' +
+      '<mhp:mhpVersion><mhp:profile>0</mhp:profile><mhp:versionMajor>1</mhp:versionMajor>' +
+      '<mhp:versionMinor>3</mhp:versionMinor><mhp:versionMicro>1</mhp:versionMicro></mhp:mhpVersion>' +
+      '</mhp:applicationDescriptor>' +
+      '<mhp:applicationTransport xsi:type="mhp:HTTPTransportType"><mhp:URLBase>' + esc(base) +
+      '</mhp:URLBase></mhp:applicationTransport>' +
+      '<mhp:applicationLocation>' + esc(file) + '</mhp:applicationLocation>' +
+      '</mhp:Application></mhp:ApplicationList></mhp:ApplicationDiscovery></mhp:ServiceDiscovery>';
+  }
+
+  function launchXhr(host) {
+    var xhr = new XMLHttpRequest(), t0 = Date.now();
+    log('→ POST http://' + host + ':12345/apps/HbbTV');
+    try {
+      xhr.open('POST', 'http://' + host + ':12345/apps/HbbTV', true);
+      // Ohne Anfuehrungszeichen, sonst erzwingt der Browser einen Preflight (T6, 29.10.2026).
+      xhr.setRequestHeader('Content-Type', 'text/plain; charset=utf-8');
+      xhr.timeout = 30000;
+      xhr.onloadend = function () {
+        log('← Status ' + xhr.status + ' nach ' + (Date.now() - t0) + ' ms' +
+          (xhr.status === 0 ? ' (0 = Antwort nicht lesbar oder kein Dienst)' : ''));
+      };
+      xhr.send(ait(APP_URL));
+    } catch (e) {
+      log('✘ ' + String(e));
+    }
+  }
+
+  // Ein text/plain-Formular sendet "name=wert\r\n". Die XML-AIT wird am ersten "=" geteilt, damit der
+  // Rumpf wieder genau die XML-AIT ergibt. Die Seite wechselt dabei zur Antwort des DIAL-Servers.
+  function launchForm(host) {
+    var xml = ait(APP_URL), cut = xml.indexOf('=');
+    var form = document.createElement('form'), field = document.createElement('input');
+    form.method = 'POST';
+    form.action = 'http://' + host + ':12345/apps/HbbTV';
+    form.enctype = 'text/plain';
+    form.acceptCharset = 'utf-8';
+    field.type = 'hidden';
+    field.name = xml.slice(0, cut);
+    field.value = xml.slice(cut + 1);
+    form.appendChild(field);
+    document.body.appendChild(form);
+    log('→ Formular an http://' + host + ':12345/apps/HbbTV');
+    form.submit();
+  }
+
+  function launch(host) {
+    msg('Startanfrage an ' + host + ' gesendet. Falls der TV fragt: mit OK bestätigen.');
+    // ?form=1 erzwingt den Formularweg auch unter HTTP (Test und Rueckfall).
+    if (location.protocol === 'https:' || /[?&]form=1/.test(location.search)) { launchForm(host); } else { launchXhr(host); }
+  }
+
+  function setupMode(on) {
+    try { if (on) { localStorage.setItem(SETUP_KEY, '1'); } else { localStorage.removeItem(SETUP_KEY); } }
+    catch (e) { /* ohne localStorage kein Einrichtungsmodus */ }
+    $('setup').textContent = 'Einrichtungsmodus: ' + (on ? 'an' : 'aus');
+    $('setup').className = 'btn' + (on ? ' on' : '');
+  }
+  function isSetupMode() {
+    try { return localStorage.getItem(SETUP_KEY) === '1'; } catch (e) { return false; }
+  }
+
+  $('retry').addEventListener('click', function () { launch(TV_IP); });
+  $('setup').addEventListener('click', function () { setupMode(!isSetupMode()); });
+
+  var backForward = false;
+  try { backForward = performance.navigation.type === 2; } catch (e) { /* alt */ }
+  // Automatisch nur im TV-Browser. Am PC hat das Oeffnen der Vorschau am 30.10.2026 versehentlich
+  // eine Startanfrage an den TV ausgeloest.
+  var onTv = /SmartTvA|Vestel|OMI\//.test(navigator.userAgent);
+  setupMode(isSetupMode());
+  if (!onTv) {
+    msg('Diese Seite startet PixelOS nur im TV-Browser automatisch. Hier startet „Nochmal starten“ ' +
+      'PixelOS auf dem Fernseher ' + TV_IP + '.');
+  } else if (isSetupMode()) {
+    msg('Einrichtungsmodus: kein Autostart. Jetzt kannst du z. B. die ★1-Taste 5 Sekunden halten. ' +
+      'Danach „Einrichtungsmodus“ wieder ausschalten.');
+  } else if (backForward) {
+    msg('Zurück im Browser. „Nochmal starten“ startet PixelOS erneut.');
+  } else {
+    setTimeout(function () { launch(TV_IP); }, 1200);
+  }
+})();
+</script>
+</body>
+</html>
