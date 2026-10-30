@@ -1,0 +1,16 @@
+<!doctype html>
+<html lang="de">
+<head>
+<meta charset="utf-8">
+<title>PixelOS Diagnose</title>
+<style>html, body { margin: 0; height: 100%; background: #0b0d12; }</style>
+</head>
+<body>
+<script>
+/* Testadresse ohne "?" und "=" (die TV-Tastatur hat kein "="): schaltet fuer diese Browsersitzung die
+   Diagnose an den PC im Heimnetz ein und oeffnet die normale Startseite. */
+try { sessionStorage.setItem('pixelos.diag', '192.168.0.241:8000'); } catch (e) { /* dann ohne Diagnose */ }
+location.replace('./');
+</script>
+</body>
+</html>
