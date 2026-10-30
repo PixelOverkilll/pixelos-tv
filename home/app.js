@@ -15,6 +15,10 @@
   var APPS = { netflix: 'Netflix', prime: 'AmazonInstantVideo' };
   var onTv = /HbbTV|Vestel|SmartTvA/.test(navigator.userAgent) && !/[?&]demo=1/.test(location.search);
   var config = { mode: onTv ? 'control' : 'preview' };
+  // Diagnose nur mit ?diag=<Heimnetz-IP:Port>: kleine Bildanfragen an den PC (als Bild auch von HTTPS
+  // an http:// erlaubt). Nur private Adressen, damit niemand die Seite als Zaehlpixel missbraucht.
+  var diagHost = (/[?&]diag=((?:192\.168|10)\.[0-9]{1,3}\.[0-9]{1,3}:[0-9]{2,5})(?:&|$)/.exec(location.search) || [])[1];
+  var diagSession = Math.random().toString(36).slice(2, 8);
   var status = document.getElementById('status');
   var launcher = document.getElementById('launcher');
   var actions = document.querySelectorAll('[data-action]');
@@ -31,6 +35,17 @@
   function setStatus(message) {
     status.textContent = message;
     statusPanel.hidden = !message;
+  }
+
+  function diag(eventName, extra) {
+    if (!diagHost) { return; }
+    var data = { s: diagSession, t: new Date().getTime() - loadedAt.getTime(), ev: eventName, owner: !!owner,
+      keys: keyset.status, wt: typeof window.__omi_window_type === 'string' ? window.__omi_window_type : null,
+      vis: document.visibilityState || null, focus: document.hasFocus ? document.hasFocus() : null,
+      proto: location.protocol };
+    var key;
+    for (key in extra) { if (Object.prototype.hasOwnProperty.call(extra, key)) { data[key] = extra[key]; } }
+    try { new Image().src = 'http://' + diagHost + '/beacon?d=' + encodeURIComponent(JSON.stringify(data)); } catch (error) {}
   }
 
   function showSettings(visible) {
@@ -175,6 +190,7 @@
     var path = KEYS[action] ? '/apps/SmartCenter' : '/apps/' + APPS[action];
     var body = KEYS[action] ? "<?xml version='1.0' ?><remote><key code='" + KEYS[action] + "'/></remote>" : '';
     tvRequest(path, body, function (statusCode) {
+      diag('action', { action: action, status: statusCode });
       busy = false;
       launcher.setAttribute('aria-busy', 'false');
       button.classList.remove('is-pending');
@@ -215,6 +231,7 @@
 
   function onKeyDown(event) {
     var code = event.keyCode || event.which;
+    diag('key', { code: code });
     if (startupActive && (code === 13 || (code >= 37 && code <= 40) || code === 461 || code === 8 || code === 27)) {
       event.preventDefault();
       finishStartup();
@@ -280,9 +297,18 @@
   startup.addEventListener('click', finishStartup);
   document.addEventListener('keydown', onKeyDown);
   document.addEventListener('keyup', function (event) { if ((event.keyCode || event.which) === 13) { enterHeld = false; } });
-  window.addEventListener('blur', function () { enterHeld = false; });
+  window.addEventListener('blur', function () { enterHeld = false; diag('blur'); });
+  window.addEventListener('focus', function () { diag('focus'); });
+  window.addEventListener('pagehide', function () { diag('pagehide'); });
+  window.addEventListener('error', function (event) {
+    diag('error', { msg: String(event.message || '').slice(0, 160), line: event.lineno || null });
+  });
+  document.addEventListener('mousemove', function () {
+    if (!diag.mouse) { diag.mouse = true; diag('mouse'); }  // nur die erste Bewegung melden
+  });
   document.addEventListener('visibilitychange', function () {
     enterHeld = false;
+    diag('visibility');
     if (!document.hidden) { updateClock(); }
   });
   try { if (window.localStorage.getItem('pixelhome.theme') === 'lagoon') { theme = 'lagoon'; } } catch (error) {}
@@ -293,10 +319,12 @@
   initializeHbbTV();
   renderMode();
   // Sichtbar ohne Bedienung, damit sich am TV ablesen laesst, wie PixelOS laeuft (Tests 30.10.2026).
-  document.getElementById('footer-brand').textContent = 'PixelOS v3 · ' +
+  document.getElementById('footer-brand').textContent = 'PixelOS v4 · ' +
     (owner ? 'HbbTV-App, Tasten ' + (keyset.applied ? 'an' : 'aus') : 'Browserseite') +
     (typeof window.__omi_window_type === 'string' ? ' · ' + window.__omi_window_type : '');
   updateClock();
   window.setInterval(updateClock, 30000);
   focusInitial();
+  diag('loaded', { ua: navigator.userAgent.slice(0, 200), href: location.href.slice(0, 160) });
+  window.setInterval(function () { diag('alive'); }, 5000);
 }());
